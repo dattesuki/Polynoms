@@ -237,7 +237,7 @@ public:
         return *this;
     }
 
-    
+
     friend std::ostream& operator<<(std::ostream& os, list<type> l) {
         if (l.CheckCycles() == false) {
             //it was written before iterators
@@ -251,6 +251,7 @@ public:
         else {
             node<type>* now = l.first;
             os << "size = Cycle;\t";
+            
             //if()
             for (size_t i = 0; i <= l.FindCycles(); ++i) {
                 os << now->GetValue() << "->";
@@ -266,25 +267,9 @@ public:
             return os;
         }
     }
+    
 
-
-
-    //Слияние упорядоченных массивов
-    friend list merge(list a, list b) {
-        list<type> c;
-        size_t na = a.sz;
-        size_t nb = b.sz;
-        size_t i;
-        size_t j;
-        for (i = 0, j = 0; ((i < na) && (j < nb));) {
-            if (a[i] < b[j]) c.push_back(a[i++]);
-            else c.push_back(b[j++]);
-        }
-        for (; i < na; i++) c.push_back(a[i]);
-        for (; j < nb; j++) c.push_back(b[j]);
-        c.pop_front();
-        return c;
-    }
+   
 
     list<type>& operator=(const list<type>& right) {
         if (this != &right) {
@@ -324,12 +309,17 @@ public:
             return *this;
         }
 
+        operator node<type>*() const { return now; }
+        node<type>* now_ptr() const { return now; }
+
         node<type>* begin() { return first; }
         node<type>* pt_now() { return now; }
         node<type>* end() {
-            if (CheckCycles == true) throw std::logic_error("endless");
+            if (List->CheckCycles() == true) throw std::logic_error("endless");
             return NULL;
         }
+
+        node<type>* next() { return now->next; }
 
         type& value() const
         {
@@ -380,7 +370,47 @@ public:
             return !(*this == right);
         }
         
+        
     };
+
+    using Iterator = list<type>::iterator;
+    node<type>* GoBack() {
+        Iterator it(*this);
+        if (CheckCycles() == false) {
+            while (it.next() != it.end()) {
+                ++it;
+            }
+            return it.now_ptr();
+        }
+        else {
+            for (size_t i = 0; i < this->FindCycles(); ++it, ++i);
+            node<type>* flag = (++it);
+            while (it.now_ptr()->next != flag) {
+                //if is needed in order to return a non-first element in same a situation (when the loop starts with the zero element)
+                //
+                //size = Cycle; 1->(2->3->7->1)
+                //  Goback() :1
+                if (it.now_ptr()->next == first) break;
+                ++it;
+            }
+            return it.now_ptr();
+        }
+    }
+    //Слияние упорядоченных массивов
+    friend list<type> merge(list& a, list& b, list& c) {
+        size_t na = a.sz;
+        size_t nb = b.sz;
+        size_t i;
+        size_t j;
+        for (i = 0, j = 0; ((i < na) && (j < nb));) {
+            if (a[i] < b[j]) c.push_back(a[i++]);
+            else c.push_back(b[j++]);
+        }
+        for (; i < na; i++) c.push_back(a[i]);
+        for (; j < nb; j++) c.push_back(b[j]);
+        c.pop_front();
+        return c;
+    }
 
 };
 
