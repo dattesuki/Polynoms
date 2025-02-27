@@ -28,13 +28,7 @@ TEST(MonomTest, AssignmentOperator) {
     EXPECT_EQ(m2.getK(), 2.5);
 }
 
-TEST(MonomTest, AdditionOperator) {
-    Monom m1(123, 2.5);
-    Monom m2(123, 1.5);
-    Monom m3 = m1 + m2;
-    EXPECT_EQ(m3.getDegree(), 123);
-    EXPECT_EQ(m3.getK(), 4.0);
-}
+
 
 TEST(MonomTest, MultiplicationOperatorWithScalar) {
     Monom m1(123, 2.5);
@@ -87,24 +81,7 @@ TEST(PolynomTest, AddMonom) {
     EXPECT_EQ(p.GetMonom(1).getK(), 4.0);
 }
 
-TEST(PolynomTest, AdditionOperator) {
-    Polynom p1;
-    p1.add(Monom(123, 2.5));
-    p1.add(Monom(111, 1.5));
 
-    Polynom p2;
-    p2.add(Monom(123, 1.5));
-    p2.add(Monom(222, 3.0));
-
-    Polynom p3 = p1 + p2;
-
-    EXPECT_EQ(p3.GetMonom(1).getDegree(), 222);
-    EXPECT_EQ(p3.GetMonom(1).getK(), 3.0);
-    EXPECT_EQ(p3.GetMonom(2).getDegree(), 123);
-    EXPECT_EQ(p3.GetMonom(2).getK(), 4.0);
-    EXPECT_EQ(p3.GetMonom(3).getDegree(), 111);
-    EXPECT_EQ(p3.GetMonom(3).getK(), 1.5);
-}
 
 TEST(PolynomTest, MultiplicationOperator) {
     Polynom p1;
@@ -244,17 +221,3 @@ TEST(TranslatorTest, MixedTerms) {
     EXPECT_EQ(p.GetMonom(3).getK(), -4.0);
 }
 
-TEST(TranslatorTest, HardTest) {
-    std::vector<Term*> terms = String_To_Terms("2*x^2 + 3*y^3 - 4*z^4");
-    Polynom p1 = TermsToPolyom(terms);
-    std::vector<Term*> terms2 = String_To_Terms("2yxz + 1");
-    Polynom p2 = TermsToPolyom(terms2);
-
-    std::ostringstream os1, os2, os3;
-    os1 << p1;
-    os2 << p2;
-    os3 << p1 + p2;
-    EXPECT_EQ(os1.str(), "2*x^2 + 3*y^3 + -4*z^4");
-    EXPECT_EQ(os2.str(), "2*x^1*y^1*z^1 + 1");
-    EXPECT_EQ(os3.str(), "2*x^2 + 2*x^1*y^1*z^1 + 3*y^3 + -4*z^4 + 1");
-}

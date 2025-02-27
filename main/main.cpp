@@ -11,16 +11,19 @@ int main() {
     list<float> a(c);
     
     Polynom p1;
-    p1 = TermsToPolyom(String_To_Terms("yz + x"));
+    p1 = TermsToPolyom(String_To_Terms("1yz + 2x"));
 
 
     Polynom p2;
-    p2 = TermsToPolyom(String_To_Terms("y"));
-
+    p2 = TermsToPolyom(String_To_Terms("1y"));
+    
     cout << p1 << endl;
     cout << p2 << endl;
-    cout << p1 + p2<<endl;
-    cout << p1*p2 <<endl;
+    Polynom p3;
+    p3 = (p1 + p2);
+    cout << p3 << endl;
+    p3 = (p1 * p2);
+    cout << p3 << endl;
 
     return 0;
 }

@@ -12,7 +12,7 @@
 template <typename type>
 class list;
 
-
+class Polynom;
 
 template <typename type>
 struct node {
@@ -59,14 +59,14 @@ public:
         first = NULL;
     }
     list(type value) {
-        first = new node(value);
+        first = new node<type>(value);
         ++sz;
     }
 
     list(std::vector<type> v) {
         if (v.size() == 0) throw std::logic_error("vector is empty");
         first = new node<type>(v[0]);
-        sz = size(v);
+        sz = v.size();
         node<type>* temp = first;
 
         for (size_t i = 1; i < sz; ++i) {

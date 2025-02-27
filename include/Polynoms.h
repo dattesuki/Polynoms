@@ -175,7 +175,7 @@ public:
         list<Monom*>::iterator it(right.List);
         it++;
         while(it != it.end()) {
-            os << it.value()->k;
+            os << it.value()->getK();
             if (it.value()->x_deg() != 0) {
                 os << "*x^" << it.value()->x_deg();
             }

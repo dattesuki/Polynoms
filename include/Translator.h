@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 #include <map>
-
+#include <algorithm>
 enum types { number, degree };
 
 class Term {
@@ -189,7 +189,6 @@ Polynom TermsToPolyom(std::vector<Term*> terms) {
         polynom.add(Monom(deg, temp));
         i--; 
     }
-
     return polynom;
 }
 
