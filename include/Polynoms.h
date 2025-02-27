@@ -1,23 +1,23 @@
 //
-//  main.cpp
+//  
 //  Polynoms
 //
 //  Created by Daniil Litvyakov on 13.02.2025.
 //
-
+#pragma once
 #include <iostream>
-#include <list>
+#include "List.h"
 
 const int MAX_DEG=9;
 
 class Monom{
-public:
-    int degree;
-    double k;
+private:
+    int degree=0;
+    double k=0;
     
 public:
     Monom(int _degree = 0, double _k = 0):degree(_degree),k(_k){};
-    
+
     Monom(const Monom& m): degree(m.degree), k(m.k){};
     
     int x_deg() const{
@@ -57,6 +57,9 @@ public:
         return res;
     }
     
+    int getDegree() const { return degree; }
+    double getK() const { return k; }
+
     Monom& operator=(const Monom& m){
         if(this!=&m){
             k=m.k;
@@ -64,85 +67,134 @@ public:
         }
         return *this;
     }
-    
-    
+
+    friend class Polynom;
+    friend std::ostream& operator<<(std::ostream& os, Polynom& right);
 };
-
-
 
 
 class Polynom{
-    std::list<Monom*> List;
+private:
+    list<Monom*> List;
+    
 public:
     Polynom():List(){
-        List.push_back(new Monom);
-        std::cout<<List.size();
-        //циклим лист
-    };
+        List.push_back(new Monom());
+        List.MakeCycle(List.GetSize() - 1, 0);
+    }
     
+    void push_back(const Monom& m) {
+        List.push_back(new Monom(m));
+    }
+
+    Monom& GetMonom(int index) {
+        return *(List[index]);
+    }
+    void add(const Monom& m) {
+        size_t i = 1;
+        for (; i < List.GetSize(); ++i) {
+            if (m.degree >= List[i]->degree) break;
+        }
+        if (i < List.GetSize()) {
+            if (m.degree == List[i]->degree) {
+                List[i]->k += m.k;
+                return;
+            }
+        }
+        List.insert(new Monom(m),i);
+    }
+
     ~Polynom(){
-        while(List.size()!=0){
-            List.pop_back();
+        while(List.GetSize()!=0){
+            List.pop_front();
         }
     };
     
-    Polynom(const Polynom& m);
-    
-    /*
-    
-    begin(){
-        return iterator(head->next);
+    Polynom(const Polynom& m) {
+        List = m.List;
     }
-    
-    end(){
-        return iterator(head);
+
+
+    Polynom& operator=(const Polynom& right) {
+        if (this != &right) {
+            List=right.List;
+        }
+        return *this;
     }
-    
-    
-    Polynom operator+(const Polynom& p){
-        Polynom res();
-        
-        //цикл по итератору от начала до конца
-        //it1 = begin,it2 =
-        while((it1!=end) && (it2!=end)){
-            if (it1->data.degree == it2->data.degree){
-                res.insert((it1->data + it2->data),it3);
-                ++it1;
-                ++it2;
-                ++it3;
+   
+    Polynom operator+(Polynom& p) {
+        Polynom res;
+        list<Monom*>::iterator it1(List);
+        list<Monom*>::iterator it2(p.List);
+        it1++;
+        it2++;
+        while ((it1 != it1.end()) && (it2 != it2.end())) {
+            if (it1.value()->degree == it2.value()->degree) {
+                res.push_back((*(it1.value()) + *(it2.value())));
+                it1++; it2++;
             }
-            else{
-                if(it1->data.degree < it2->data.degree){
-                    res.insert(it1.data);
-                    ++it3;
-                    ++it1;
+            else {
+                if (it1.value()->degree > it2.value()->degree) {
+                    res.push_back(*(it1++.value()));
                 }
+                else res.push_back(*(it2++.value()));
             }
         }
-        if(it1==end){
-            while(it2!=end) //добавляем it2
-                }
-        else{
-            while(it1!=end) //добавляем it1
-                }
+
+        if (it1 == it1.end()) {
+            while (it2 != it2.end()) res.List.push_back(it2++.value());
+        }
+        if (it2 == it2.end()) {
+            while (it1 != it1.end()) res.List.push_back(it1++.value());
+        }
+        
+        return res;
     }
-*/
+
+    Polynom operator*(Polynom& p) {
+        Polynom res;
+        list<Monom*>::iterator it1(List);
+        list<Monom*>::iterator it2(p.List);
+        it1++;
+        it2++;
+        //naive algorithm
+        for (; it1 != it1.end(); it1++) {
+            it2 = list<Monom*>::iterator (p.List);
+            it2++;
+            for (; it2 != it2.end(); it2++) {
+                res.add((*(it1.value())) * (*(it2.value())));
+            }
+        }
+        
+
+        return res;
+    }
+
+    
+    friend std::ostream& operator<<(std::ostream& os, Polynom& right) {
+        list<Monom*>::iterator it(right.List);
+        it++;
+        while(it != it.end()) {
+            os << it.value()->k;
+            if (it.value()->x_deg() != 0) {
+                os << "*x^" << it.value()->x_deg();
+            }
+            if (it.value()->y_deg() != 0) {
+                os << "*y^" << it.value()->y_deg();
+            }
+            if (it.value()->z_deg() != 0) {
+                os << "*z^" << it.value()->z_deg();
+            }
+            if (++it != it.end()) os << " + ";
+        }
+        return os;
+    }
 };
 
 
 
 
-//по сортированному списку идти итератором
-using namespace std;
-int main() {
-    
-    Polynom P;
-    Monom A(5,10);
-    Monom WW(4,20.5);
-    Monom B=A*WW;
-    //cout<<(B).degree<<" "<<(B).k;
-    return 0;
-}
+
 
 
 

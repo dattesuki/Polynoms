@@ -1,443 +1,260 @@
-#include "translator-of-arithmetic-expressions.h"
+#include "Translator.h"
 #include <gtest.h>
-//#include <sstream> // to std::istringstream
 
-TEST(Check, last_operation) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5.5 + 4.5 + ");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "Incorrect sequence in the expression!";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//input:5.5 + 4.5 +
-	//output:Incorrect sequence in the expression!
+TEST(MonomTest, DefaultConstructor) {
+    Monom m;
+    EXPECT_EQ(m.getDegree(), 0);
+    EXPECT_EQ(m.getK(), 0);
 }
 
-TEST(Check, divided_by_zero) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5.5 / 0 ");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "\nResult: DivideByZero";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//input:5.5 / 0
-	//output:Incorrect sequence in the expression!
+TEST(MonomTest, ParameterizedConstructor) {
+    Monom m(123, 2.5);
+    EXPECT_EQ(m.getDegree(), 123);
+    EXPECT_EQ(m.getK(), 2.5);
 }
 
-TEST(Check, only_open_bracket) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("(5.5 + 4.5"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//input:(5.5 + 4.5
-	//output:Bad brackets
+TEST(MonomTest, CopyConstructor) {
+    Monom m1(123, 2.5);
+    Monom m2(m1);
+    EXPECT_EQ(m2.getDegree(), 123);
+    EXPECT_EQ(m2.getK(), 2.5);
 }
 
-TEST(Check, only_close_bracket) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5.5 + 4.5)"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf(); 
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//5.5 + 4.5)
-	//
-	//Bad brackets
+TEST(MonomTest, AssignmentOperator) {
+    Monom m1(123, 2.5);
+    Monom m2;
+    m2 = m1;
+    EXPECT_EQ(m2.getDegree(), 123);
+    EXPECT_EQ(m2.getK(), 2.5);
 }
 
-TEST(Check, open_bracket_more_than_close_bracket) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("(5 + (5.5 + 4.5)"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf(); 
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//(5 + (5.5 + 4.5)
-	//
-	//Bad brackets
+TEST(MonomTest, AdditionOperator) {
+    Monom m1(123, 2.5);
+    Monom m2(123, 1.5);
+    Monom m3 = m1 + m2;
+    EXPECT_EQ(m3.getDegree(), 123);
+    EXPECT_EQ(m3.getK(), 4.0);
 }
 
-TEST(Check, close_bracket_more_than_open_bracket) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("(5 + 5.5) + 4.5)"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf(); 
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//(5 + 5.5) + 4.5)
-	//
-	//Bad brackets
+TEST(MonomTest, MultiplicationOperatorWithScalar) {
+    Monom m1(123, 2.5);
+    Monom m2 = m1 * 2.0;
+    EXPECT_EQ(m2.getDegree(), 123);
+    EXPECT_EQ(m2.getK(), 5.0);
 }
 
-TEST(Check, complex_sequence_of_brackets) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5*(6+(5/(4-3))+2)+2"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf(); 
-	std::cin.rdbuf(MyInput.rdbuf()); //  std::cin to MyInput
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,true);
-
-	//5*(6+(5/(4-3))+2)+2
-	//
-	//not Bad brackets
+TEST(MonomTest, MultiplicationOperatorWithMonom) {
+    Monom m1(111, 2.0);
+    Monom m2(222, 3.0);
+    Monom m3 = m1 * m2;
+    EXPECT_EQ(m3.getDegree(), 333);
+    EXPECT_EQ(m3.getK(), 6.0);
 }
 
-
-
-TEST(Check_Brackets, logic_error_of_brackets) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("(5+6))+(7+8"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	
-	testing::internal::CaptureStdout();
-	std::cout << "Bad brackets";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-
-	//(5+6))+(7+8
-	//
-	//Bad brackets
+TEST(MonomTest, DegreeComponents) {
+    Monom m(123);
+    EXPECT_EQ(m.x_deg(), 1);
+    EXPECT_EQ(m.y_deg(), 2);
+    EXPECT_EQ(m.z_deg(), 3);
 }
 
-TEST(Check_Sequence, two_operator) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5+4-3-*3+5");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(MonomTest, DegreeValidation) {
+    Monom m1(999);
+    EXPECT_TRUE(m1.is_deg_correct());
 
-
-	//testing::internal::CaptureStdout();
-	//std::cout << "Incorrect sequence in the expression!";
-	//std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,false);
-
-	//5+4-3-*3+5
-	//
-	//Incorrect sequence in the expression!
+    Monom m2(1000);
+    EXPECT_FALSE(m2.is_deg_correct());
 }
 
-TEST(Check_Sequence, two_number) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5 + 5 5");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-
-	testing::internal::CaptureStdout();
-	std::cout << "Incorrect sequence in the expression!";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,false);
-
-	//5 + 5 5
-	//
-	//Incorrect sequence in the expression!
+TEST(PolynomTest, DefaultConstructor) {
+    Polynom p;
+    EXPECT_EQ(p.GetMonom(0).getDegree(), 0);
+    EXPECT_EQ(p.GetMonom(0).getK(), 0);
 }
 
-TEST(Check_Sequence, bad_first_term) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("- 5 + 5 * 2");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-
-	testing::internal::CaptureStdout();
-	std::cout << "\nBad order";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,false);
-
-	//- 5 + 5 * 2
-	//
-	//Bad order
+TEST(PolynomTest, PushBack) {
+    Polynom p;
+    p.push_back(Monom(123, 2.5));
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 123);
+    EXPECT_EQ(p.GetMonom(1).getK(), 2.5);
 }
 
-TEST(Check_Sequence, bad_last_term) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5 + 5 * 2 -");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-
-	testing::internal::CaptureStdout();
-	std::cout << "\nBad order";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp, false);
-
-	//5 + 5 * 2 -
-	//
-	//Bad order
+TEST(PolynomTest, AddMonom) {
+    Polynom p;
+    p.add(Monom(123, 2.5));
+    p.add(Monom(123, 1.5));
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 123);
+    EXPECT_EQ(p.GetMonom(1).getK(), 4.0);
 }
 
-TEST(Check_Sequence, hard_bad_sequence) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5+4-(3*3+)5");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(PolynomTest, AdditionOperator) {
+    Polynom p1;
+    p1.add(Monom(123, 2.5));
+    p1.add(Monom(111, 1.5));
 
-	testing::internal::CaptureStdout();
-	std::cout << "Incorrect sequence in the expression!";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,false);
+    Polynom p2;
+    p2.add(Monom(123, 1.5));
+    p2.add(Monom(222, 3.0));
 
-	//5+4-(3*3+)5
-	//
-	//Incorrect sequence in the expression!
+    Polynom p3 = p1 + p2;
+
+    EXPECT_EQ(p3.GetMonom(1).getDegree(), 222);
+    EXPECT_EQ(p3.GetMonom(1).getK(), 3.0);
+    EXPECT_EQ(p3.GetMonom(2).getDegree(), 123);
+    EXPECT_EQ(p3.GetMonom(2).getK(), 4.0);
+    EXPECT_EQ(p3.GetMonom(3).getDegree(), 111);
+    EXPECT_EQ(p3.GetMonom(3).getK(), 1.5);
 }
 
-TEST(Check_Sequence, one_term) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(PolynomTest, MultiplicationOperator) {
+    Polynom p1;
+    p1.add(Monom(222, 2.0));
+    p1.add(Monom(111, 1.0));
 
-	testing::internal::CaptureStdout();
-	std::cout << "\nResult: 5\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
 
-	//5
-	//
-	//Result: 5
+    Polynom p2;
+    p2.add(Monom(222, 2.0));
+    p2.add(Monom(111, 1.0));
+
+    Polynom p3 = p1 * p2;
+    EXPECT_EQ(p3.GetMonom(1).getDegree(), 444);
+    EXPECT_EQ(p3.GetMonom(1).getK(), 4.0);
+    EXPECT_EQ(p3.GetMonom(2).getDegree(), 333);
+    EXPECT_EQ(p3.GetMonom(2).getK(), 4.0);
 }
 
-TEST(Check_Sequence, two_term) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5+");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	bool temp = Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(PolynomTest, OutputOperator) {
+    Polynom p;
+    p.add(Monom(123, 2.5));
+    p.add(Monom(111, 1.5));
 
-	testing::internal::CaptureStdout();
-	std::cout << "\nBad order";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(temp,false);
+    std::ostringstream os;
+    os << p;
 
-	//5
-	//
-	//Bad order
+    EXPECT_EQ(os.str(), "2.5*x^1*y^2*z^3 + 1.5*x^1*y^1*z^1");
+}
+
+TEST(PolynomTest, CopyConstructor) {
+    Polynom p1;
+    p1.add(Monom(123, 2.5));
+    p1.add(Monom(111, 1.5));
+
+    Polynom p2(p1);
+
+    EXPECT_EQ(p2.GetMonom(1).getDegree(), 123);
+    EXPECT_EQ(p2.GetMonom(1).getK(), 2.5);
+    EXPECT_EQ(p2.GetMonom(2).getDegree(), 111);
+    EXPECT_EQ(p2.GetMonom(2).getK(), 1.5);
+}
+
+TEST(PolynomTest, AssignmentOperator) {
+    Polynom p1;
+    p1.add(Monom(123, 2.5));
+    p1.add(Monom(111, 1.5));
+
+    Polynom p2;
+    p2 = p1;
+
+    EXPECT_EQ(p2.GetMonom(1).getDegree(), 123);
+    EXPECT_EQ(p2.GetMonom(1).getK(), 2.5);
+    EXPECT_EQ(p2.GetMonom(2).getDegree(), 111);
+    EXPECT_EQ(p2.GetMonom(2).getK(), 1.5);
+}
+
+TEST(TranslatorTest, CheckStringValid) {
+    EXPECT_TRUE(CheckString("2.5*x^1*y^2*z^3 + 1.5*x^1*y^1*z^1"));
+    EXPECT_TRUE(CheckString("3*x^2 + 4*y^3 - 5*z^4"));
+    EXPECT_TRUE(CheckString("x^2 + y^2 + z^2"));
+}
+
+TEST(TranslatorTest, CheckStringInvalid) {
+    EXPECT_FALSE(CheckString("2.5*x^1*y^2*z^3 + + 1.5*x^1*y^1*z^1"));
+    EXPECT_FALSE(CheckString("x^2 + y^2 + z^2^"));
 }
 
 
-TEST(Execute, test_sum) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5.5 + 4.5"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	
-	testing::internal::CaptureStdout();
-	std::cout << "\n";
-	std::cout << "Result: 10";
-	std::cout<<"\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//5.5 + 4.5
-	//
-	//Result: 10
+TEST(TranslatorTest, TermsToPolynom) {
+    std::vector<Term*> terms = String_To_Terms("2.5*x^1*y^2*z^3 + 1.5*x^1*y^1*z^1");
+    Polynom p = TermsToPolyom(terms);
+
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 123);
+    EXPECT_EQ(p.GetMonom(1).getK(), 2.5);
+
+    EXPECT_EQ(p.GetMonom(2).getDegree(), 111);
+    EXPECT_EQ(p.GetMonom(2).getK(), 1.5);
 }
 
+TEST(TranslatorTest, ComplexExpression) {
+    std::vector<Term*> terms = String_To_Terms("3*x^2 + 4*y^3 - 5*z^4");
+    Polynom p = TermsToPolyom(terms);
 
-TEST(Execute, test_sum_with_variables) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("a + b\n5\n15.5"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	
-	testing::internal::CaptureStdout();
-	std::cout << "\nInitialize the variables:\n";
-	std::cout << "a = b = \n";
-	std::cout << "Result: 20.5";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//a + b
-	//Initialize the variables:
-	//a = 5
-	//b = 15.5
-	//Result: 20.5
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 200);
+    EXPECT_EQ(p.GetMonom(1).getK(), 3.0);
+
+    EXPECT_EQ(p.GetMonom(2).getDegree(), 30);
+    EXPECT_EQ(p.GetMonom(2).getK(), 4.0);
+
+    EXPECT_EQ(p.GetMonom(3).getDegree(), 4);
+    EXPECT_EQ(p.GetMonom(3).getK(), -5.0);
 }
 
+TEST(TranslatorTest, SingleTerm) {
+    std::vector<Term*> terms = String_To_Terms("7*x^3");
+    Polynom p = TermsToPolyom(terms);
 
-
-TEST(Execute, test_mul) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5.5 * 3"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	
-	testing::internal::CaptureStdout();
-	std::cout << "\n";
-	std::cout << "Result: 16.5";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//5.5 * 3
-	//
-	//Result: 16.5
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 300);
+    EXPECT_EQ(p.GetMonom(1).getK(), 7.0);
 }
 
+TEST(TranslatorTest, NoDegree) {
+    std::vector<Term*> terms = String_To_Terms("5");
+    Polynom p = TermsToPolyom(terms);
 
-TEST(Execute, test_mul_with_variables) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("a * b\n2.5\n6"); 
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf()); 
-	Execute();
-	std::cin.rdbuf(originalCinBuffer); 
-	std::string output1 = testing::internal::GetCapturedStdout();
-	
-	testing::internal::CaptureStdout();
-	std::cout << "\nInitialize the variables:\n";
-	std::cout << "a = b = \n";
-	std::cout << "Result: 15";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//a*b
-	// 
-	//Initialize the variables:
-	//a = 2.5
-	//b = 6
-	// 
-	//Result: 15
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 0);
+    EXPECT_EQ(p.GetMonom(1).getK(), 5.0);
 }
 
-TEST(Execute, soft_sequence) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5^2*3+1");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(TranslatorTest, NegativeCoefficient) {
+    std::vector<Term*> terms = String_To_Terms("-3*x^2");
+    Polynom p = TermsToPolyom(terms);
 
-	testing::internal::CaptureStdout();
-	std::cout << "\n";
-	std::cout << "Result: 76";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//5^2*3+1
-	// 
-	//Result: 76
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 200);
+    EXPECT_EQ(p.GetMonom(1).getK(), -3.0);
 }
 
+TEST(TranslatorTest, MultipleTermsSameDegree) {
+    std::vector<Term*> terms = String_To_Terms("2*x^2 + 3*x^2");
+    Polynom p = TermsToPolyom(terms);
 
-TEST(Execute, hard_sequence) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("((5^(1+1) - (2*10/2 + 15)))");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
-
-	testing::internal::CaptureStdout();
-	std::cout << "\n";
-	std::cout << "Result: 0";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//((5^(1+1) - (2*10/2 + 15)))
-	// 
-	//Result: 0
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 200);
+    EXPECT_EQ(p.GetMonom(1).getK(), 5.0);
 }
 
-TEST(Execute, hard_sequence_with_variables) {
-	testing::internal::CaptureStdout();
-	std::istringstream MyInput("5+(a+b*3^1)*c - 15\n5.5\n1.5\n1");
-	std::streambuf* originalCinBuffer = std::cin.rdbuf();
-	std::cin.rdbuf(MyInput.rdbuf());
-	Execute();
-	std::cin.rdbuf(originalCinBuffer);
-	std::string output1 = testing::internal::GetCapturedStdout();
+TEST(TranslatorTest, MixedTerms) {
+    std::vector<Term*> terms = String_To_Terms("2*x^2 + 3*y^3 - 4*z^4");
+    Polynom p = TermsToPolyom(terms);
 
-	testing::internal::CaptureStdout();
-	std::cout << "\nInitialize the variables:\n";
-	std::cout << "a = b = c = \n";
-	std::cout << "Result: 0";
-	std::cout << "\n";
-	std::string output2 = testing::internal::GetCapturedStdout();
-	EXPECT_EQ(output1, output2);
-	//5+(a+b*3^1)*c - 20
-	// 
-	//Initialize the variables:
-	//a = 5.5
-	//b = 1.5
-	//c = 1
-	// 
-	//Result: 0
+    EXPECT_EQ(p.GetMonom(1).getDegree(), 200);
+    EXPECT_EQ(p.GetMonom(1).getK(), 2.0);
+
+    EXPECT_EQ(p.GetMonom(2).getDegree(), 30);
+    EXPECT_EQ(p.GetMonom(2).getK(), 3.0);
+
+    EXPECT_EQ(p.GetMonom(3).getDegree(), 4);
+    EXPECT_EQ(p.GetMonom(3).getK(), -4.0);
 }
 
+TEST(TranslatorTest, HardTest) {
+    std::vector<Term*> terms = String_To_Terms("2*x^2 + 3*y^3 - 4*z^4");
+    Polynom p1 = TermsToPolyom(terms);
+    std::vector<Term*> terms2 = String_To_Terms("2yxz + 1");
+    Polynom p2 = TermsToPolyom(terms2);
+
+    std::ostringstream os1, os2, os3;
+    os1 << p1;
+    os2 << p2;
+    os3 << p1 + p2;
+    EXPECT_EQ(os1.str(), "2*x^2 + 3*y^3 + -4*z^4");
+    EXPECT_EQ(os2.str(), "2*x^1*y^1*z^1 + 1");
+    EXPECT_EQ(os3.str(), "2*x^2 + 2*x^1*y^1*z^1 + 3*y^3 + -4*z^4 + 1");
+}

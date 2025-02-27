@@ -55,7 +55,10 @@ protected:
     }
 
 public:
-    list(type value = type()) {
+    list() {
+        first = NULL;
+    }
+    list(type value) {
         first = new node(value);
         ++sz;
     }
@@ -71,15 +74,10 @@ public:
         }
 
     }
-
-    size_t GetSize() const { return sz; }
-
-
-    void push_back(const type& value) {
-        node<type>* temp = new node<type>(value);
-        GetLast()->next = temp;
-        ++sz;
+    ~list() {
+        while (sz != 0) pop_front();
     }
+    size_t GetSize() const { return sz; }
 
     void push_front(const type& value) {
         node<type>* temp = new node<type>(value);
@@ -88,25 +86,42 @@ public:
         ++sz;
     }
 
-    //
-    void insert(const type& value, size_t num) {
-        if ((num > sz) || (num < 0)) throw std::logic_error("error");
-
-        if (num != 0) {
-            node<type>* temp = first;
-            node<type>* temp2;
-            for (int i = 0; i < (num - 1); ++i) {
-                temp = temp->next;
-            }
-            temp2 = temp->next;
-            temp->next = new node<type>(value);
-            temp->next->next = temp2;
+    void push_back(const type& value) {
+        if (sz != 0) {
+            node<type>* temp = new node<type>(value);
+            GetLast()->next = temp;
             ++sz;
         }
         else {
             push_front(value);
         }
+    }
 
+
+    //
+    void insert(const type& value, size_t num) {
+        if ((num > sz) || (num < 0)) throw std::logic_error("error");
+
+        if (num == sz) push_back(value);
+        else {
+            if (num != 0) {
+                node<type>* temp = first;
+                node<type>* temp2;
+                for (int i = 0; i < (num - 1); ++i) {
+                    temp = temp->next;
+                }
+                temp2 = temp->next;
+                temp->next = new node<type>(value);
+                temp->next->next = temp2;
+                ++sz;
+            }
+            else {
+                node<type>* temp = new node<type>(value);
+                temp->next = first;
+                first = temp;
+                ++sz;
+            }
+        }
     }
 
 
@@ -121,6 +136,7 @@ public:
     }
 
     void pop_front() {
+        if (first == NULL) throw std::logic_error("error");
         node<type>* temp = first->next;
         delete first;
         first = temp;
@@ -151,7 +167,7 @@ public:
     }
 
     type& operator[](size_t num) {
-        if (num > sz) throw std::logic_error("error");
+        if ((num >= sz)&&(CheckCycles()==false)) throw std::logic_error("error");
         node<type>* temp = first;
         for (size_t i = 0; i < num; ++i) {
             temp = temp->next;
@@ -169,7 +185,7 @@ public:
 
     }
 
-    bool CheckCycles() {
+    bool CheckCycles() const{
         node<type>* slow = first;
         node<type>* fast = first;
 
@@ -205,6 +221,7 @@ public:
 
 
     size_t LenCycle() {
+        if (CheckCycles() == false) throw std::logic_error("error");
         node<type>* slow = first;
         node<type>* fast = first;
         size_t num;
@@ -228,17 +245,17 @@ public:
         }
         return len;
     }
-
-    list<type>& operator = (const list<type> l) {
+    /*
+    list<type>& operator = (const list<type>& l) {
         if (this != &l) {
             while (this->sz != 0) this->pop_back();
             for (size_t i = 0; i < l.sz; ++i) this->push_back(l[i]);
         }
         return *this;
     }
+    */
 
-
-    friend std::ostream& operator<<(std::ostream& os, list<type> l) {
+    friend std::ostream& operator<<(std::ostream& os, list<type>& l) {
         if (l.CheckCycles() == false) {
             //it was written before iterators
             os << "size = " << size(l) << "; ";
@@ -268,22 +285,16 @@ public:
         }
     }
     
-
-   
-
     list<type>& operator=(const list<type>& right) {
         if (this != &right) {
-            if (right.CheckCycles() == false) {
-                while (sz != 0) {
-                    this->pop_back();
-                }
-                node<type> temp = right.first;
-                for (size_t i = 0; i < right.GetSize(); ++i) {
-                    this->push_back(temp->value);
-                    temp = temp->next;
-                }
+            while (sz != 0) {
+                this->pop_back();
             }
-
+            node<type>* temp = right.first;
+            for (size_t i = 0; i < right.GetSize(); ++i) {
+                this->push_back(temp->value);
+                temp = temp->next;
+            }
         }
         return *this;
     }
@@ -315,7 +326,7 @@ public:
         node<type>* begin() { return first; }
         node<type>* pt_now() { return now; }
         node<type>* end() {
-            if (List->CheckCycles() == true) throw std::logic_error("endless");
+            if (List->CheckCycles() == true) return List->GoBack();
             return NULL;
         }
 
@@ -332,7 +343,7 @@ public:
         }
 
         list<type>::iterator& operator++() {
-            if (now->next == NULL) throw std::logic_error("error");
+            if (now == NULL) throw std::logic_error("error");
             now = now->next;
             n++;
             return *this;
@@ -370,8 +381,11 @@ public:
             return !(*this == right);
         }
         
-        
     };
+
+    void clear() {
+        while (sz != 0) pop_front();
+    }
 
     using Iterator = list<type>::iterator;
     node<type>* GoBack() {
@@ -398,6 +412,7 @@ public:
     }
     //Слияние упорядоченных массивов
     friend list<type> merge(list& a, list& b, list& c) {
+        while (c.GetSize() != 0) c.pop_front();
         size_t na = a.sz;
         size_t nb = b.sz;
         size_t i;
@@ -411,13 +426,14 @@ public:
         c.pop_front();
         return c;
     }
-
+    
+    
 };
 
 
 
 template <typename type>
-size_t size(list<type> A) {
+size_t size(const list<type>& A) {
     return A.GetSize();
 }
 
